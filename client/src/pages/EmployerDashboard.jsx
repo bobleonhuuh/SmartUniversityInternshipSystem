@@ -102,6 +102,12 @@ function EmployerDashboard() {
                     >
                         Post Internship
                     </Link>
+                    <Link
+                            to={`/applicants/${job.internship_id}`}
+                            className="btn btn-info btn-sm"
+                        >
+                        View Applicants
+                    </Link>
 
                 </div>
 
