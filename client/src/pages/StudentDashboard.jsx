@@ -16,14 +16,14 @@ function StudentDashboard() {
 
     useEffect(() => {
         Promise.all([
-            api.get("/applications/mine"),
+            api.get(`/applications/student/${user.id}`),
             api.get("/internships"),
-            api.get("/students/me")
+            api.get(`/students/${user.id}`)
         ])
             .then(([appsRes, internshipsRes, studentRes]) => {
                 setApplications(appsRes.data);
                 setInternships(internshipsRes.data);
-                setStudent(studentRes.data);
+                setStudent(studentRes.data.student);
             })
             .catch(() => {})
             .finally(() => setLoading(false));

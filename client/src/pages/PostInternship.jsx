@@ -4,9 +4,11 @@ import Navbar from "../components/Navbar";
 
 function PostInternship() {
 
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+
     const [internship, setInternship] = useState({
 
-        employer_id: 1,
+        employer_id: user?.id || null,
         title: "",
         description: "",
         location: "",
@@ -38,7 +40,10 @@ function PostInternship() {
 
             await axios.post(
                 "http://localhost:5001/api/internships",
-                internship
+                {
+                    ...internship,
+                    employer_id: user?.id || internship.employer_id
+                }
             );
 
             alert("Internship posted successfully!");

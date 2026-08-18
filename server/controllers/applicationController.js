@@ -1,29 +1,66 @@
 const Application = require("../models/applicationModel");
+const Student = require("../models/studentModel");
 
 // Apply
 exports.apply = (req, res) => {
 
-    Application.apply(req.body, (err, result) => {
+    const { internship_id, student_id, cover_letter } = req.body;
 
+    if (!internship_id) {
+        return res.status(400).json({
+            success: false,
+            message: "internship_id is required"
+        });
+    }
+
+    if (!student_id) {
+        return res.status(400).json({
+            success: false,
+            message: "student_id is required"
+        });
+    }
+
+    const createApplication = (resolvedStudentId) => {
+        Application.apply(
+            {
+                internship_id,
+                student_id: resolvedStudentId,
+                cover_letter
+            },
+            (err, result) => {
+                if (err) {
+                    console.log(err);
+                    return res.status(500).json({
+                        success: false,
+                        message: err.message
+                    });
+                }
+
+                res.json({
+                    success: true,
+                    message: "Application submitted successfully"
+                });
+            }
+        );
+    };
+
+    Student.getStudentProfile(student_id, (err, results) => {
         if (err) {
-
-            console.log(err);
-
+            console.error(err);
             return res.status(500).json({
                 success: false,
-                message: err.message
+                message: "Unable to resolve student"
             });
-
         }
 
-        res.json({
+        if (results && results.length > 0) {
+            return createApplication(results[0].student_id);
+        }
 
-            success: true,
-
-            message: "Application submitted successfully"
-
+        return res.status(400).json({
+            success: false,
+            message: "Student not found"
         });
-
     });
 
 };

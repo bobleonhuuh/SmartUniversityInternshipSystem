@@ -13,6 +13,7 @@ import PostInternship from "./pages/PostInternship";
 import AdminDashboard from "./pages/AdminDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Applicants from "./pages/Applicants";
+import EmployerApplications from "./pages/EmployerApplications";
 function App() {
 
     return (
@@ -75,6 +76,10 @@ function App() {
                 <Route
                     path="/applicants/:internshipId"
                     element={<Applicants />}
+                />
+                <Route
+                    path="/employer/internships/:internshipId/applications"
+                    element={<EmployerApplications />}
                 />
                 <Route
                     path="/student"

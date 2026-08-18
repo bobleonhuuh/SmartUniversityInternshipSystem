@@ -1,6 +1,5 @@
 const Student = require("../models/studentModel");
 
-
 // ===============================
 // GET STUDENT PROFILE
 // ===============================
@@ -11,14 +10,15 @@ exports.getStudentProfile = (req, res) => {
     Student.getStudentProfile(userId, (err, results) => {
 
         if (err) {
+
             console.error(err);
 
             return res.status(500).json({
                 success: false,
                 message: "Unable to fetch student profile"
             });
-        }
 
+        }
 
         if (results.length === 0) {
 
@@ -28,7 +28,6 @@ exports.getStudentProfile = (req, res) => {
             });
 
         }
-
 
         res.status(200).json({
 
@@ -40,7 +39,6 @@ exports.getStudentProfile = (req, res) => {
     });
 
 };
-
 
 
 // ===============================
@@ -66,7 +64,6 @@ exports.updateStudentProfile = (req, res) => {
 
             }
 
-
             res.status(200).json({
 
                 success: true,
@@ -80,7 +77,6 @@ exports.updateStudentProfile = (req, res) => {
 };
 
 
-
 // ===============================
 // GET MY APPLICATIONS
 // ===============================
@@ -88,51 +84,64 @@ exports.getMyApplications = (req, res) => {
 
     const userId = req.params.userId;
 
+    Student.getMyApplications(
+        userId,
+        (err, results) => {
 
-    Student.getMyApplications(userId, (err, results) => {
+            if (err) {
 
+                console.error(err);
 
-        if (err) {
+                return res.status(500).json({
 
-            console.error(err);
+                    success: false,
+                    message: "Unable to fetch applications"
 
-            return res.status(500).json({
+                });
 
-                success: false,
-                message: "Unable to fetch applications"
+            }
+
+            res.status(200).json({
+
+                success: true,
+                total: results.length,
+                applications: results
 
             });
 
         }
-
-
-        res.status(200).json({
-
-            success: true,
-            total: results.length,
-            applications: results
-
-        });
-
-
-    });
+    );
 
 };
+
+
+// ===============================
+// GET ALL STUDENTS
+// ===============================
 exports.getAllStudents = (req, res) => {
 
-    Student.getAllStudents((err, results) => {
+    Student.getAllStudents(
+        (err, results) => {
 
-        if (err) {
+            if (err) {
 
-            return res.status(500).json({
-                success: false,
-                message: err.message
+                console.error(err);
+
+                return res.status(500).json({
+                    success: false,
+                    message: err.message
+                });
+
+            }
+
+            res.status(200).json({
+
+                success: true,
+                students: results
+
             });
 
         }
-
-        res.json(results);
-
-    });
+    );
 
 };

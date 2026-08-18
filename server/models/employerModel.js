@@ -52,7 +52,21 @@ const getInternshipApplications = (internshipId, callback) => {
 
 };
 
+const getEmployerByUserId = (userId, callback) => {
+
+    const sql = `
+        SELECT employer_id
+        FROM employers
+        WHERE user_id = ?
+        LIMIT 1
+    `;
+
+    db.query(sql, [userId], callback);
+
+};
+
 module.exports = {
     getEmployerInternships,
-    getInternshipApplications
+    getInternshipApplications,
+    getEmployerByUserId
 };

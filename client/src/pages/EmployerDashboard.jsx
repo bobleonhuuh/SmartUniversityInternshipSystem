@@ -1,129 +1,186 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import api from "../services/api";
 
 function EmployerDashboard() {
 
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = JSON.parse(
+        localStorage.getItem("user") || "null"
+    );
 
     const [internships, setInternships] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+
+    // ==========================================
+    // LOAD EMPLOYER INTERNSHIPS
+    // ==========================================
 
     useEffect(() => {
+
+        const loadInternships = async () => {
+
+            if (!user?.id) {
+
+                setError(
+                    "Employer account information not found. Please login again."
+                );
+
+                setLoading(false);
+
+                return;
+
+            }
+
+            try {
+
+                const response = await api.get(
+                    `/employers/${user.id}/internships`
+                );
+
+                console.log(
+                    "Employer internships:",
+                    response.data
+                );
+
+                setInternships(
+                    response.data?.internships || []
+                );
+
+            } catch (err) {
+
+                console.error(
+                    "Employer dashboard error:",
+                    err
+                );
+
+                setError(
+                    err.response?.data?.message ||
+                    "Unable to load your internships."
+                );
+
+            } finally {
+
+                setLoading(false);
+
+            }
+
+        };
 
         loadInternships();
 
     }, []);
 
-    const loadInternships = () => {
-
-        axios
-            .get(`http://localhost:5001/api/employers/${user.id}/internships`)
-            .then((res) => {
-
-                setInternships(res.data);
-
-            })
-            .catch((err) => {
-
-                console.log(err);
-
-            });
-
-    };
-
-    const deleteInternship = async (id) => {
-
-        if (!window.confirm("Are you sure you want to delete this internship?")) {
-
-            return;
-
-        }
-
-        try {
-
-            await axios.delete(
-                `http://localhost:5001/api/internships/${id}`
-            );
-
-            alert("Internship deleted successfully.");
-
-            loadInternships();
-
-        } catch (err) {
-
-            alert(err.response?.data?.message || "Unable to delete internship.");
-
-        }
-
-    };
-
-    const updateStatus = async (applicationId, status) => {
-
-    try {
-
-        await axios.put(
-
-            `http://localhost:5001/api/applications/${applicationId}/status`,
-
-            {
-                status
-            }
-
-        );
-
-        alert(`Application ${status} successfully.`);
-
-        loadApplicants(selectedInternshipId);
-
-    } catch (err) {
-
-        alert(err.response?.data?.message || "Unable to update application.");
-
-    }
-
-};
 
     return (
 
         <>
-
             <Navbar />
 
-            <div className="container mt-5">
+            <div className="container my-5">
+
+                {/* HEADER */}
 
                 <div className="d-flex justify-content-between align-items-center mb-4">
 
-                    <h2>Employer Dashboard</h2>
+                    <div>
+
+                        <h2>
+                            Employer Dashboard
+                        </h2>
+
+                        <p className="text-muted mb-0">
+
+                            Manage your internship opportunities
+                            and applicants.
+
+                        </p>
+
+                    </div>
 
                     <Link
                         to="/post-internship"
                         className="btn btn-primary"
                     >
-                        Post Internship
-                    </Link>
-                    <Link
-                            to={`/applicants/${job.internship_id}`}
-                            className="btn btn-info btn-sm"
-                        >
-                        View Applicants
+                        + Post Internship
                     </Link>
 
                 </div>
 
+
+                {/* ERROR */}
+
+                {error && (
+
+                    <div className="alert alert-danger">
+
+                        {error}
+
+                    </div>
+
+                )}
+
+
+                {/* STATISTICS */}
+
                 <div className="row mb-4">
 
-                    <div className="col-md-4">
+                    <div className="col-md-4 mb-3">
 
-                        <div className="card text-center shadow">
+                        <div className="card shadow-sm p-4">
 
-                            <div className="card-body">
+                            <h6 className="text-muted">
+                                My Internships
+                            </h6>
 
-                                <h3>{internships.length}</h3>
+                            <h2>
+                                {internships.length}
+                            </h2>
 
-                                <p>Total Internships</p>
+                        </div>
 
-                            </div>
+                    </div>
+
+                    <div className="col-md-4 mb-3">
+
+                        <div className="card shadow-sm p-4">
+
+                            <h6 className="text-muted">
+                                Active Opportunities
+                            </h6>
+
+                            <h2>
+                                {
+                                    internships.filter(
+                                        internship =>
+                                            internship.status !==
+                                            "Closed"
+                                    ).length
+                                }
+                            </h2>
+
+                        </div>
+
+                    </div>
+
+                    <div className="col-md-4 mb-3">
+
+                        <div className="card shadow-sm p-4">
+
+                            <h6 className="text-muted">
+                                Applications
+                            </h6>
+
+                            <h2>
+                                --
+                            </h2>
+
+                            <small className="text-muted">
+                                View applicants below
+                            </small>
 
                         </div>
 
@@ -131,199 +188,178 @@ function EmployerDashboard() {
 
                 </div>
 
-                <table className="table table-bordered table-striped">
 
-                    <thead className="table-dark">
+                {/* TITLE */}
 
-                        <tr>
+                <div className="d-flex justify-content-between align-items-center mb-3">
 
-                            <th>Title</th>
+                    <h4>
+                        My Internship Opportunities
+                    </h4>
 
-                            <th>Category</th>
+                    <Link
+                        to="/post-internship"
+                        className="btn btn-outline-primary btn-sm"
+                    >
+                        Post New Internship
+                    </Link>
 
-                            <th>Location</th>
+                </div>
 
-                            <th>Duration</th>
 
-                            <th>Deadline</th>
+                {/* LOADING */}
 
-                            <th>Status</th>
+                {loading && (
 
-                            <th>Actions</th>
+                    <div className="text-center py-5">
 
-                        </tr>
+                        <div
+                            className="spinner-border text-primary"
+                            role="status"
+                        />
 
-                    </thead>
+                        <p className="text-muted mt-3">
+                            Loading internships...
+                        </p>
 
-                    <tbody>
+                    </div>
 
-                        {internships.length === 0 ? (
+                )}
 
-                            <tr>
 
-                                <td colSpan="7" className="text-center">
+                {/* EMPTY */}
 
-                                    No internships found.
+                {!loading &&
+                    !error &&
+                    internships.length === 0 && (
 
-                                </td>
+                        <div className="card p-5 text-center">
 
-                            </tr>
+                            <h5>
+                                No internships posted yet
+                            </h5>
 
-                        ) : (
+                            <p className="text-muted">
+                                Post your first internship
+                                opportunity to start receiving
+                                applications.
+                            </p>
 
-                            internships.map((job) => (
+                            <Link
+                                to="/post-internship"
+                                className="btn btn-primary"
+                            >
+                                Post Internship
+                            </Link>
 
-                                <tr key={job.internship_id}>
+                        </div>
 
-                                    <td>{job.title}</td>
+                    )}
 
-                                    <td>{job.category}</td>
 
-                                    <td>{job.location}</td>
+                {/* INTERNSHIPS */}
 
-                                    <td>{job.duration}</td>
+                {!loading &&
+                    internships.map((internship) => (
 
-                                    <td>{job.deadline}</td>
+                        <div
+                            className="card shadow-sm mb-3"
+                            key={internship.internship_id}
+                        >
 
-                                    <td>{job.status}</td>
+                            <div className="card-body">
 
-                                    <td>
+                                <div className="row align-items-center">
 
-                                        <button
-                                            className="btn btn-info btn-sm me-2"
-                                        >
-                                            Applicants
-                                        </button>
+                                    {/* DETAILS */}
 
-                                        <button
-                                            className="btn btn-warning btn-sm me-2"
-                                        >
-                                            Edit
-                                        </button>
+                                    <div className="col-md-7">
 
-                                        <button
-                                            className="btn btn-danger btn-sm"
-                                            onClick={() =>
-                                                deleteInternship(job.internship_id)
+                                        <h5 className="mb-1">
+
+                                            {internship.title}
+
+                                        </h5>
+
+                                        <p className="text-muted mb-1">
+
+                                            📍{" "}
+                                            {internship.location ||
+                                                "Location not specified"}
+
+                                        </p>
+
+                                        <small className="text-muted">
+
+                                            Category:{" "}
+                                            {internship.category ||
+                                                "Not specified"}
+
+                                        </small>
+
+                                        {internship.deadline && (
+
+                                            <small className="text-muted d-block mt-1">
+
+                                                Deadline:{" "}
+                                                {new Date(
+                                                    internship.deadline
+                                                ).toLocaleDateString()}
+
+                                            </small>
+
+                                        )}
+
+                                    </div>
+
+
+                                    {/* STATUS */}
+
+                                    <div className="col-md-2">
+
+                                        <span
+                                            className={
+                                                internship.status ===
+                                                "Closed"
+                                                    ? "badge bg-secondary"
+                                                    : "badge bg-success"
                                             }
                                         >
-                                            Delete
-                                        </button>
 
-                                    </td>
+                                            {
+                                                internship.status ||
+                                                "Active"
+                                            }
 
-                                </tr>
+                                        </span>
 
-                            ))
+                                    </div>
 
-                        )}
 
-                    </tbody>
+                                    {/* ACTION */}
 
-                </table>
+                                    <div className="col-md-3 text-md-end mt-3 mt-md-0">
 
-                {selectedInternshipId && (
+                                        <Link
+                                            to={`/employer/internships/${internship.internship_id}/applications`}
+                                            className="btn btn-primary btn-sm"
+                                        >
+                                            View Applicants
+                                        </Link>
 
-<div className="mt-5">
+                                    </div>
 
-<h3>Applicants</h3>
+                                </div>
 
-<table className="table table-bordered">
+                            </div>
 
-<thead>
+                        </div>
 
-<tr>
-
-<th>Name</th>
-
-<th>Registration No.</th>
-
-<th>Course</th>
-
-<th>Cover Letter</th>
-
-<th>Status</th>
-
-<th>Action</th>
-
-</tr>
-
-</thead>
-
-<tbody>
-
-{applicants.map((app) => (
-
-<tr key={app.application_id}>
-
-<td>{app.first_name} {app.last_name}</td>
-
-<td>{app.registration_number}</td>
-
-<td>{app.course}</td>
-
-<td>{app.cover_letter}</td>
-
-<td>
-
-<span className="badge bg-secondary">
-
-{app.status}
-
-</span>
-
-</td>
-
-<td>
-
-<button
-className="btn btn-success btn-sm me-2"
-onClick={() =>
-updateStatus(app.application_id,"Accepted")
-}
->
-
-Accept
-
-</button>
-
-<button
-className="btn btn-warning btn-sm me-2"
-onClick={() =>
-updateStatus(app.application_id,"Reviewed")
-}
->
-
-Reviewed
-
-</button>
-
-<button
-className="btn btn-danger btn-sm"
-onClick={() =>
-updateStatus(app.application_id,"Rejected")
-}
->
-
-Reject
-
-</button>
-
-</td>
-
-</tr>
-
-))}
-
-</tbody>
-
-</table>
-
-</div>
-
-)}
+                    ))}
 
             </div>
+
+            <Footer />
 
         </>
 
